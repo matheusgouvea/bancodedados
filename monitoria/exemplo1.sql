@@ -1,0 +1,1 @@
+select * from aluno a where id_monitoria = '3';

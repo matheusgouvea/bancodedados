@@ -1,0 +1,112 @@
+CREATE TABLE Autor (
+    id_autor SERIAL PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL
+);
+
+
+create table Livro (
+    id_livro SERIAL PRIMARY KEY,
+    titulo VARCHAR(255) NOT NULL,
+    id_autor INTEGER NOT NULL,
+    FOREIGN KEY (id_autor) REFERENCES Autor(id_autor) ON DELETE CASCADE ON UPDATE RESTRICT
+);
+
+create table Usuario (
+    id_usuario SERIAL PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL
+);
+
+create table Emprestimo (id_emprestimo SERIAL PRIMARY KEY,
+    data_emprestimo DATE NOT NULL,
+    data_devolucao DATE,
+    valor_emprestimo DECIMAL(10, 2) NOT NULL,
+    id_usuario INTEGER NOT NULL,
+    id_livro INTEGER NOT NULL,
+    FOREIGN KEY (id_usuario) REFERENCES Usuario(id_usuario),
+    FOREIGN KEY (id_livro) REFERENCES Livro(id_livro) ON DELETE CASCADE
+);
+
+
+INSERT INTO Autor (nome) VALUES 
+('J.K. Rowling'),
+('George R.R. Martin'),
+('J.R.R. Tolkien'),
+('Agatha Christie'),
+('Stephen King');
+
+INSERT INTO Livro (titulo, id_autor) VALUES 
+('Harry Potter and the Philosopher''s Stone', 1),
+('A Game of Thrones', 2),
+('The Hobbit', 3),
+('Murder on the Orient Express', 4),
+('The Shining', 5);
+
+
+INSERT INTO Usuario (nome, email) VALUES 
+('Alice', 'alice@example.com'),
+('Bob', 'bob@example.com'),
+('Charlie', 'charlie@example.com'),
+('David', 'david@example.com'),
+('Eve', 'eve@example.com');
+
+
+
+INSERT INTO Emprestimo (data_emprestimo, data_devolucao, valor_emprestimo, id_usuario, id_livro) VALUES 
+('2024-08-01', '2024-08-15', 15.00, 1, 1),
+('2024-08-05', '2024-08-19', 12.00, 2, 2),
+('2024-08-07', '2024-08-21', 10.00, 3, 3),
+('2024-08-10', NULL, 20.00, 4, 4),
+('2024-08-12', NULL, 18.00, 5, 5);
+
+
+
+/Retornar os livros emprestados:/
+
+SELECT l.titulo, u.nome, e.data_emprestimo, e.data_devolucao
+FROM Emprestimo e
+JOIN Livro l ON e.id_livro = l.id_livro
+JOIN Usuario u ON e.id_usuario = u.id_usuario;
+
+
+
+/Retornar os livros que não foram emprestados:/
+
+SELECT titulo 
+FROM Livro 
+WHERE id_livro NOT IN (SELECT id_livro FROM Emprestimo);
+
+
+/Contar quantos livros foram emprestados:/
+
+SELECT COUNT(*) AS total_livros_emprestados 
+FROM Emprestimo;
+
+
+
+/A quantidade de livros que cada autor tem:/
+
+SELECT a.nome, COUNT(l.id_livro) AS quantidade_livros
+FROM Autor a
+JOIN Livro l ON a.id_autor = l.id_autor
+GROUP BY a.nome;
+
+
+/Exibir os livros do mais caro ao mais barato em ordem:/
+SELECT l.titulo, e.valor_emprestimo
+FROM Emprestimo e
+JOIN Livro l ON e.id_livro = l.id_livro
+ORDER BY e.valor_emprestimo DESC;
+
+
+
+/Apagar um autor consequentemente seu livro deverá ser automaticamente apagado:/
+DELETE FROM Autor WHERE id_autor = 3;
+
+
+/Mostrar o total arrecadado em empréstimo de um determinado livro/
+SELECT l.titulo, SUM(e.valor_emprestimo) AS total_arrecadado
+FROM Emprestimo e
+JOIN Livro l ON e.id_livro = l.id_livro
+WHERE l.id_livro = 1
+GROUP BY l.titulo;
